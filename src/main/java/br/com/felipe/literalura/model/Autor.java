@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -15,9 +16,11 @@ public class Autor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(unique = true)
     private String nome;
-    private String anoDeNascimento;
-    private String anoDeFalecimento;
+    private Integer anoDeNascimento;
+    private Integer anoDeFalecimento;
 
     @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Livro> livros = new ArrayList<>();
@@ -25,24 +28,22 @@ public class Autor {
     public Autor() {
     }
 
-    public Autor(RespostaAPI dadosAutor) {
-        this.nome = dadosAutor.livro().getFirst().autores().getFirst().nome();
-        this.anoDeNascimento = dadosAutor.livro().getFirst().autores().getFirst().anoDeNascimento();
-        this.anoDeFalecimento = dadosAutor.livro().getFirst().autores().getFirst().anoDeFalecimento();
-        setLivros(livros);
-    }
-
-    public void setLivros(List<Livro> livros) {
-        livros.forEach(l -> l.setAutor(this));
-        this.livros = livros;
+    public Autor(DadosAutor dadosAutor) {
+        this.nome = dadosAutor.nome();
+        this.anoDeNascimento = dadosAutor.anoDeNascimento();
+        this.anoDeFalecimento = dadosAutor.anoDeFalecimento();
     }
 
     @Override
     public String toString() {
-        return  "Autor: " + nome + "\n" +
+        String livrosStr = livros.stream()
+                .map(Livro::getTitulo)
+                .collect(Collectors.joining(", "));
+
+        return "Autor: " + nome + "\n" +
                 "Ano de nascimento: " + anoDeNascimento + "\n" +
                 "Ano de falecimento: " + anoDeFalecimento + "\n" +
-                "Livros: " + livros + "\n" +
+                "Livros: [" + livrosStr + "]\n" +
                 "-------------------" + "\n";
     }
 }
